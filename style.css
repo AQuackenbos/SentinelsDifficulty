@@ -1,0 +1,15 @@
+body{background:#000000;color:#FFFFFF;font-family:Verdana,Palatino,Garamond,Helvetica,sans-serif;}
+#master{width:500px;margin:0 auto;padding:0}
+#container{width:300px;float:left;height:500px}
+#score_container{width:150px;float:left;text-align:center;height:500px;padding-top:100px}
+#loss_container,#score {font-size:48px;}
+#score.bad{color:#F00}
+#score.good{color:#0F0}
+label{font-size:18px;margin-bottom:10px;}
+select{width:215px;height:35px;margin-bottom:10px}
+.scorelabel{font-size:24px}
+.select-score{border-radius:3px;padding:3px;font-weight:bold;margin-left:10px;}
+.select-score.good{background-color:#60EE60;color:#080;border:1px solid #080;}
+.select-score.bad{background-color:#EE6060;color:#800;border:1px solid #800;}
+.advlabel{font-size:14px;}
+.checkbox{margin-left:100px;height:20px;width:20px;}

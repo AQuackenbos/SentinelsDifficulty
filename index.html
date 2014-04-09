@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Sentinels Difficulty Calculator</title>
+		<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="style.css"/>
+	</head>
+	<body>
+		<div id="master">
+			<h3>Sentinels of the Multiverse Difficulty Calculator</h2>
+			<div id="container">
+				<div id="player_container">
+					<label for="player_select">Players</label><br />
+					<select id="player_select" class="score"></select><span class="select-score">0</span>
+				</div>
+				<div id="hero_container">
+					<label>Heroes</label><br />
+					<select id="hero_select_0" class="heroselect"><option value="0">Choose player count first</option></select><span class="select-score heroselect">0</span>
+				</div>
+				<div id="villain_container">
+					<label for="villain_select">Villain</label><input type="checkbox" class="checkbox" id="villain_advanced_check"/><label for="villain_advanced_check" class="advlabel">Advanced</label><br />
+					<select id="villain_select" class="score"></select><span class="select-score">0</span>
+					<select id="villain_advanced_select" style="display:none"></select><span class="select-score" style="display:none">0</span>
+				</div>
+				<div id="env_container">
+					<label for="env_select">Environment</label><br />
+					<select id="env_select" class="score"></select><span class="select-score">0</span>
+				</div>
+			</div>
+			<div id="score_container">
+				<span class="scorelabel">SCORE</span><br />
+				<div id="score">0</div><br />
+				<span class="scorelabel">LOSS RATE</span><br />
+				<span id="loss_container"><span id="loss">0</span>%</span>
+			</div>
+			<div style="clear:both;margin-top:50px">
+				Data snapshop from <a href="http://x.gray.org/sentinels-of-the-multiverse-difficulty-scores.html">Matthew Gray's SotM Score System</a>
+			</div>
+		</div>
+		
+		
+			<script type="text/javascript">
+			
+			function roundToN(input,n)
+			{
+				var d = input % n;
+				if(d > n/2)
+				{
+					return input + (n-d);
+				}
+				else
+				{
+					return input - d;
+				}
+				
+				//default wtf response
+				return input;
+			}
+			
+			$(function(){
+				window.data = {};
+				
+				var blank = $('<option/>',{html:'..Choose..',value:0});
+				
+				blank.clone().appendTo('#player_select');
+				blank.clone().appendTo('#villain_select');
+				blank.clone().appendTo('#villain_advanced_select');
+				blank.clone().appendTo('#env_select');
+				
+				$.getJSON('sentinels.json',function(d){
+					window.data = d;
+					var heroes=window.data.difficulty.hero.sort(function(a,b){
+						if(a.name == b.name)
+							return 0;
+						if(a.name < b.name)
+							return -1;
+						if(a.name > b.name)
+							return 1;
+					}),
+					villains=window.data.difficulty.villain.sort(function(a,b){
+						if(a.name == b.name)
+							return 0;
+						if(a.name < b.name)
+							return -1;
+						if(a.name > b.name)
+							return 1;
+					}),
+					environments=window.data.difficulty.environment.sort(function(a,b){
+						if(a.name == b.name)
+							return 0;
+						if(a.name < b.name)
+							return -1;
+						if(a.name > b.name)
+							return 1;
+					}),
+					players=window.data.difficulty.players.sort(function(a,b){
+						if(a.name == b.name)
+							return 0;
+						if(a.name < b.name)
+							return -1;
+						if(a.name > b.name)
+							return 1;
+					});
+					
+					window.heroes = heroes;
+					
+					$.each(players,function(index,item){
+						$('<option/>',{value:item.points,html:item.name}).appendTo('#player_select');
+					});
+					
+					$.each(villains,function(index,item){
+						$('<option/>',{value:item.points,html:item.name}).appendTo('#villain_select');
+					});
+					
+					$.each(villains,function(index,item){
+						$('<option/>',{value:item.advanced,html:item.name}).appendTo('#villain_advanced_select');
+					});
+					
+					$.each(environments,function(index,item){
+						$('<option/>',{value:item.points,html:item.name}).appendTo('#env_select');
+					});
+				});
+				
+				$('#player_select').bind('change',function(e){
+					$('.heroselect').remove();
+					var num = parseInt($('#player_select>option:selected').html());
+					
+					for(var i = 0; i < num; i++)
+					{
+						$('<select/>',{id:'hero_select_'+i,class:'score heroselect'}).appendTo('#hero_container');
+						$.each(window.heroes,function(index,item){
+							$('<option/>',{value:item.points,html:item.name}).appendTo('#hero_select_'+i);
+						});
+						$('<span/>',{class:'select-score heroselect',html:'0'}).appendTo('#hero_container');
+						$('<br/>',{class:'heroselect'}).appendTo('#hero_container');
+					}
+				});
+				
+				$('#villain_advanced_check').bind('change',function(e){
+					$('#villain_select,#villain_advanced_select').toggle().toggleClass('score').next().toggle();
+				});
+				
+				$('#container').bind('change','.score',function(e){
+					updateScore();
+				});
+			});
+			
+			function updateScore()
+			{
+				var s = 0;
+				$('.score').each(function(idx,item){
+					s += parseInt(item.value);
+					$(item).next().html((item.value==Math.abs(item.value)?'+':'')+item.value)
+						.removeClass('bad good')
+						.addClass(item.value==Math.abs(item.value)?'bad':'good');
+				});
+				$('#score').html((s==Math.abs(s)?'+':'')+s).removeClass('bad good').addClass(s==Math.abs(s)?'bad':'good');
+				var r = roundToN(s,5);
+				var cv = 'rgb('+Math.floor(255*(parseInt(window.data.scale[r])/100))+','+Math.floor(255*((100-parseInt(window.data.scale[r]))/100))+',0)';
+				$('#loss').html(window.data.scale[r]);
+				$('#loss_container').css({color:cv});
+			}
+			
+			</script>
+	</body>
+</html>
